@@ -46,3 +46,11 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.leaflet-control-layers label,
+.leaflet-control-layers-base label,
+.leaflet-control-layers-overlays label {
+  text-align: left !important;
+  justify-content: flex-start !important;
+  display: flex !important;
+}
