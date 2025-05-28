@@ -132,13 +132,13 @@ const Map: React.FC<MapProps> = ({
 
   useEffect(() => {
     // Load Ustorp property borders
-    fetch('/data/ustorp_property_borders.json')
+    fetch(`${process.env.PUBLIC_URL}/data/ustorp_property_borders.json`)
       .then(response => response.json())
       .then((data: FeatureCollection) => setPropertyData(data))
       .catch((error: Error) => console.error('Error loading property borders:', error));
 
     // Load Shapefile data
-    fetch('/data/NVI_Eksjo_Geodata_250402.zip')
+    fetch(`${process.env.PUBLIC_URL}/data/NVI_Eksjo_Geodata_250402.zip`)
       .then(response => response.arrayBuffer())
       .then(buffer => shp.parseZip(buffer))
       .then((data) => {
