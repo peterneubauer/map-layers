@@ -79,34 +79,42 @@ const MapUpdater: React.FC<{ center: [number, number]; zoom: number }> = ({ cent
 
 // Add CSS styles for the popup
 const popupStyle = `
-<style>
-  .nvi-popup {
-    font-family: Arial, sans-serif;
-    max-width: 300px;
-  }
-  .nvi-popup h3 {
-    margin: 0 0 10px 0;
-    color: #2c3e50;
-    border-bottom: 2px solid #2c3e50;
-    padding-bottom: 5px;
-  }
-  .nvi-popup .property-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    padding: 3px 0;
-    border-bottom: 1px solid #eee;
-  }
-  .nvi-popup .property-label {
-    font-weight: bold;
-    color: #34495e;
-    margin-right: 10px;
-  }
-  .nvi-popup .property-value {
-    color: #7f8c8d;
-  }
-</style>
+.nvi-popup {
+  font-family: Arial, sans-serif;
+  max-width: 300px;
+}
+.nvi-popup h3 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  border-bottom: 2px solid #2c3e50;
+  padding-bottom: 5px;
+}
+.nvi-popup .property-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  padding: 3px 0;
+  border-bottom: 1px solid #eee;
+}
+.nvi-popup .property-label {
+  font-weight: bold;
+  color: #34495e;
+  margin-right: 10px;
+}
+.nvi-popup .property-value {
+  color: #7f8c8d;
+}
 `;
+
+// Inject popupStyle into the document head once
+function injectPopupStyle() {
+  if (!document.getElementById('nvi-popup-style')) {
+    const style = document.createElement('style');
+    style.id = 'nvi-popup-style';
+    style.innerHTML = popupStyle;
+    document.head.appendChild(style);
+  }
+}
 
 // Function to format property names for better readability
 function formatPropertyName(name: string): string {
@@ -156,6 +164,10 @@ const Map: React.FC<MapProps> = ({
     color: '#ff0000',    // red border
     weight: 3,           // thicker border
   };
+
+  useEffect(() => {
+    injectPopupStyle();
+  }, []);
 
   return (
     <MapContainer 
@@ -212,16 +224,14 @@ const Map: React.FC<MapProps> = ({
               onEachFeature={(feature, layer) => {
                 const properties = feature.properties || {};
                 const popupContent = `
-                  <div style="font-family: Arial, sans-serif; max-width: 300px;">
-                    <h3 style="margin:0 0 10px 0; color:#2c3e50; border-bottom:2px solid #2c3e50; padding-bottom:5px;">
-                      NVI Feature Details
-                    </h3>
+                  <div class="nvi-popup">
+                    <h3>NVI Feature Details</h3>
                     ${Object.entries(properties)
                       .map(
                         ([key, value]) =>
-                          `<div style="display:flex;justify-content:space-between;margin-bottom:5px;padding:3px 0;border-bottom:1px solid #eee;">
-                            <span style="font-weight:bold;color:#34495e;margin-right:10px;">${formatPropertyName(key)}:</span>
-                            <span style="color:#7f8c8d;">${value ?? 'N/A'}</span>
+                          `<div class="property-row">
+                            <span class="property-label">${formatPropertyName(key)}:</span>
+                            <span class="property-value">${value ?? 'N/A'}</span>
                           </div>`
                       )
                       .join('')}
