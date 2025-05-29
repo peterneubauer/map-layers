@@ -47,10 +47,111 @@ body {
   padding: 0;
 }
 
+/* Leaflet control layers */
+
 .leaflet-control-layers label,
 .leaflet-control-layers-base label,
 .leaflet-control-layers-overlays label {
   text-align: left !important;
   justify-content: flex-start !important;
   display: flex !important;
+}
+
+.landing-root {
+  font-family: 'Work Sans', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.hero {
+  min-height: 80vh;
+  background: url('background.jpg') center center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4); /* dark overlay for text readability */
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  text-align: center;
+  max-width: 700px;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.cta-btn {
+  background: #a259ff;
+  color: #fff;
+  padding: 1rem 2rem;
+  border-radius: 2rem;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: background 0.2s;
+}
+
+.cta-btn:hover {
+  background: #238b45;
+}
+
+.map-section {
+  min-height: 80vh;
+  position: relative;
+  z-index: 2;
+  background: #f8f8f8;
+  padding: 0;
+}
+
+.map-section .leaflet-container {
+  height: 80vh !important;
+  width: 100vw !important;
+  border-radius: 0;
+}
+
+.logo-container {
+  position: absolute;
+  top: 32px;
+  left: 32px;
+  z-index: 10;
+}
+
+.header-title-logo {  
+  width: 400px;
+  height: auto;
+  display: block;
+}
+
+/* Make the CTA button use the NaturaTua green */
+.cta-btn {
+  background: #41ab5d; /* NaturaTua green */
+  color: #fff;
+  padding: 1rem 2rem;
+  border-radius: 2rem;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: background 0.2s;
+  border: none;
+}
+
+.cta-btn:hover {
+  background: #238b45; /* darker green on hover */
 }
