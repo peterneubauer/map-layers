@@ -35,13 +35,6 @@ const nviBiotopesStyle = (feature?: Feature) => ({
   weight: 2,
 });
 
-const managementBacklogStyle = (feature?: Feature) => ({
-  fillColor: '#ff7f00', // orange
-  fillOpacity: 0.5,
-  color: '#cc6600',
-  weight: 2,
-});
-
 interface MapProps {
   center?: [number, number];
   zoom?: number;
@@ -335,9 +328,7 @@ const Map: React.FC<MapProps> = ({
   zoom = 14 
 }) => {
   const [propertyData, setPropertyData] = useState<FeatureCollection | null>(null);
-  // const [shapefileData, setShapefileData] = useState<FeatureCollection | null>(null);
   const [nviBiotopesData, setNviBiotopesData] = useState<FeatureCollection | null>(null);
-  const [managementData, setManagementData] = useState<Feature | null>(null);
   const [managementPlansData, setManagementPlansData] = useState<{[key: string]: any}>({});
   const [areasWithManagementPlans, setAreasWithManagementPlans] = useState<FeatureCollection | null>(null);
 
@@ -409,12 +400,6 @@ const Map: React.FC<MapProps> = ({
         loadManagementPlans(data);
       })
       .catch((error: Error) => console.error('Error loading NVI biotopes:', error));
-    // Load management data
-    fetch(`${process.env.PUBLIC_URL}/data/management_ustorp.json`)
-      .then(response => response.json())
-      .then((data: Feature) => setManagementData(data))
-      .catch((error: Error) => console.error('Error loading management data:', error));
-
   }, [loadManagementPlans]);
 
   const propertyStyle = {
