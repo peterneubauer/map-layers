@@ -219,7 +219,7 @@ const managementPopupStyle = `
 const polygonLabelStyle = `
 .polygon-label {
   background: rgba(255, 255, 255, 0.9);
-  border: 2px solid #e74c3c;
+  border: 2px solid #27ae60;
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -231,6 +231,56 @@ const polygonLabelStyle = `
   color: #c0392b;
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   pointer-events: none;
+}
+`;
+
+// Add CSS styles for fullscreen functionality
+const fullscreenStyle = `
+body {
+  background: #f0f8f0;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.fullscreen-wrapper {
+  position: relative;
+  height: 80vh;
+  width: calc(100% - 120px);
+  margin: 20px 60px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  border: 1px solid rgba(34, 85, 34, 0.2);
+}
+
+.fullscreen-wrapper.fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  z-index: 9999 !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.fullscreen-wrapper.fullscreen .leaflet-container {
+  height: 100vh !important;
+}
+
+.fullscreen-control {
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.fullscreen-control:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
 }
 `;
 
@@ -250,6 +300,16 @@ function injectPolygonLabelStyle() {
     const style = document.createElement('style');
     style.id = 'polygon-label-style';
     style.innerHTML = polygonLabelStyle;
+    document.head.appendChild(style);
+  }
+}
+
+// Inject fullscreen style into the document head
+function injectFullscreenStyle() {
+  if (!document.getElementById('fullscreen-style')) {
+    const style = document.createElement('style');
+    style.id = 'fullscreen-style';
+    style.innerHTML = fullscreenStyle;
     document.head.appendChild(style);
   }
 }
@@ -331,6 +391,7 @@ const Map: React.FC<MapProps> = ({
   const [nviBiotopesData, setNviBiotopesData] = useState<FeatureCollection | null>(null);
   const [managementPlansData, setManagementPlansData] = useState<{[key: string]: any}>({});
   const [areasWithManagementPlans, setAreasWithManagementPlans] = useState<FeatureCollection | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Function to load management plans for all available objektids
   const loadManagementPlans = useCallback(async (biotopesData: FeatureCollection) => {
@@ -384,6 +445,11 @@ const Map: React.FC<MapProps> = ({
     console.log(`Loaded ${Object.keys(managementPlans).length} management plans for objektids:`, Object.keys(managementPlans));
   }, []);
 
+  // Function to toggle fullscreen mode
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen(prev => !prev);
+  }, []);
+
   useEffect(() => {
     // Load Ustorp property borders
     fetch(`${process.env.PUBLIC_URL}/data/ustorp_property_borders.json`)
@@ -413,17 +479,49 @@ const Map: React.FC<MapProps> = ({
     injectPopupStyle();
     injectManagementPopupStyle();
     injectPolygonLabelStyle();
+    injectFullscreenStyle();
   }, []);
 
   return (
-    <MapContainer 
-      center={center} 
-      zoom={zoom} 
-      style={{ height: '100vh', width: '100%' }}
-    >
-      <MapUpdater center={center} zoom={zoom} />
+    <div className={`fullscreen-wrapper ${isFullscreen ? 'fullscreen' : ''}`}>
+      {/* Fullscreen control button - positioned outside MapContainer */}
+      <div 
+        className="fullscreen-control"
+        onClick={toggleFullscreen}
+        title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+        style={{ 
+          position: 'absolute',
+          top: '10px',
+          right: isFullscreen ? '60px' : '10px',
+          zIndex: 1001,
+          background: 'white',
+          border: '2px solid rgba(0,0,0,0.2)',
+          borderRadius: '4px',
+          width: '34px',
+          height: '34px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '16px',
+          boxShadow: '0 1px 5px rgba(0,0,0,0.4)',
+          transition: 'all 0.2s ease'
+        }}
+      >
+        {isFullscreen ? '⤓' : '⤢'}
+      </div>
       
-      <LayersControl position="topright">
+      <MapContainer 
+        center={center} 
+        zoom={zoom} 
+        style={{ 
+          height: isFullscreen ? '100vh' : '80vh', 
+          width: '100%' 
+        }}
+      >
+        <MapUpdater center={center} zoom={zoom} />
+      
+              <LayersControl position={isFullscreen ? "topright" : "topleft"}>
       <LayersControl.BaseLayer checked name="Satellite">
           <TileLayer
             attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
@@ -630,8 +728,9 @@ const Map: React.FC<MapProps> = ({
           )}
         </LayersControl.Overlay>
 
-      </LayersControl>
-    </MapContainer>
+              </LayersControl>
+      </MapContainer>
+    </div>
   );
 };
 

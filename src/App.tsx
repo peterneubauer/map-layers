@@ -12,9 +12,12 @@ function App() {
         <div className="hero-content">
           <h1>Ustorp - The Biodiversity Lab</h1>
           <p>
-            Join forces with NaturaTua and our partners to assess, plan, implement and monitor the restoration of biodiversity.
+            NaturaTua has been working on establishing a test area of 50 hectares in Southern Sweden in order to be able to test the effect of active management with our partner, the foundation <a href="https://framtidensnatur.se/" style={{ color: 'white' }}>Framtidens Natur och Kulturarv</a>.
           </p>
-          <a className="cta-btn" href="#map-section">Explore the Map</a>
+          <p>
+            Join forces with NaturaTua and our partners to assess, plan, implement and monitor the restoration of biodiversity. The lab is a platform for testing and learning about the effect of active management on biodiversity.
+          </p>
+          <a className="cta-btn" href="#map-section">Explore the Lab</a>
         </div>
       </section>
       <section className="map-section" id="map-section">
