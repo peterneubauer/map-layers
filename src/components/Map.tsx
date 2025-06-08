@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import * as shp from 'shpjs';
-import proj4 from 'proj4';
 import { Feature, FeatureCollection } from 'geojson';
 
 // Fix for default marker icons in React-Leaflet
@@ -13,29 +11,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: require('leaflet/dist/images/marker-icon.png'),
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
-
-// SWEREF99 TM (EPSG:3006) and WGS84 definitions
-const sweref99tm = '+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs';
-const wgs84 = 'EPSG:4326';
-
-function reprojectCoord(coord: [number, number]) {
-  return proj4(sweref99tm, wgs84, coord);
-}
-
-function reprojectGeometry(geometry: any) {
-  if (geometry.type === 'Point') {
-    geometry.coordinates = reprojectCoord(geometry.coordinates);
-  } else if (geometry.type === 'LineString' || geometry.type === 'MultiPoint') {
-    geometry.coordinates = geometry.coordinates.map(reprojectCoord);
-  } else if (geometry.type === 'Polygon' || geometry.type === 'MultiLineString') {
-    geometry.coordinates = geometry.coordinates.map((ring: any) => ring.map(reprojectCoord));
-  } else if (geometry.type === 'MultiPolygon') {
-    geometry.coordinates = geometry.coordinates.map((poly: any) =>
-      poly.map((ring: any) => ring.map(reprojectCoord))
-    );
-  }
-  return geometry;
-}
 
 // Map Nvklass to green shades
 function getNvklassColor(nvklass: string | number) {
@@ -52,16 +27,20 @@ function getNvklassColor(nvklass: string | number) {
   }
 }
 
-// Style function for shapefile features
-const shapefileStyle = (feature?: Feature) => {
-  const nvklass = feature?.properties?.Nvklass;
-  return {
-    fillColor: getNvklassColor(nvklass),
-    fillOpacity: 0.5,
-    color: '#225522',
-    weight: 2,
-  };
-};
+// Style functions for GeoJSON layers
+const nviBiotopesStyle = (feature?: Feature) => ({
+  fillColor: getNvklassColor(feature?.properties?.Nvklass),
+  fillOpacity: 0.5,
+  color: '#225522',
+  weight: 2,
+});
+
+const managementBacklogStyle = (feature?: Feature) => ({
+  fillColor: '#ff7f00', // orange
+  fillOpacity: 0.5,
+  color: '#cc6600',
+  weight: 2,
+});
 
 interface MapProps {
   center?: [number, number];
@@ -76,6 +55,211 @@ const MapUpdater: React.FC<{ center: [number, number]; zoom: number }> = ({ cent
   }, [center, zoom, map]);
   return null;
 };
+
+// Function to parse CSV data for management plan
+function parseManagementPlanCSV(csvText: string) {
+  const lines = csvText.split('\n');
+  const managementPlan: any = {
+    title: '',
+    currentBiotope: '',
+    targetBiotope: '',
+    timeline: '',
+    nviValue: '',
+    area: '',
+    naturalValueClass: '',
+    managementSummary: '',
+    actions: [],
+    economics: {
+      totalCost: '',
+      totalIncome: '',
+      netResult: ''
+    }
+  };
+
+  // Parse the structured data from CSV
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const cells = line.split(',');
+    
+    if (i === 0 && cells[1]) {
+      managementPlan.title = cells[1];
+    }
+    
+    if (cells[0] === 'Nuvarande biotop' && cells[1]) {
+      managementPlan.currentBiotope = cells[1];
+    }
+    
+    if (cells[0] === 'Målbiotop' && cells[1]) {
+      managementPlan.targetBiotope = cells[1];
+    }
+    
+    if (cells[0] === 'Tidslinje' && cells[1]) {
+      managementPlan.timeline = cells[1];
+    }
+    
+    if (cells[0] === 'Naturvärdesbiotop (NVI)' && cells[1]) {
+      managementPlan.nviValue = cells[1];
+    }
+    
+    if (cells[0] === 'Areal (ha)' && cells[1]) {
+      managementPlan.area = cells[1];
+    }
+    
+    if (cells[0] === 'Naturvärdesklass' && cells[1]) {
+      managementPlan.naturalValueClass = cells[1];
+    }
+    
+    if (cells[0] === 'Skötselsammanfattning' && cells[1]) {
+      managementPlan.managementSummary = cells[1];
+    }
+    
+    // Parse actions (lines with 'x' in second column indicating planned actions)
+    if (cells[1] === 'x' && cells[0] && cells[0].trim() !== '') {
+      managementPlan.actions.push({
+        action: cells[0],
+        cost20Years: cells[3] || '',
+        costPerYear: cells[4] || '',
+        costPerHectareYear: cells[5] || ''
+      });
+    }
+    
+    // Parse economics
+    if (cells[0] === 'Ekonomi' && cells[1] === 'Summa') {
+      managementPlan.economics.totalCost = cells[4] || '';
+    }
+    if (cells[1] === 'Indikatorer: biotoper') {
+      managementPlan.economics.totalIncome = cells[4] || '';
+    }
+    if (cells[2] === 'Netto') {
+      managementPlan.economics.netResult = cells[4] || '';
+    }
+  }
+  
+  return managementPlan;
+}
+
+// Add CSS styles for the management plan popup
+const managementPopupStyle = `
+.management-popup {
+  font-family: Arial, sans-serif;
+  max-width: 500px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+.management-popup h2 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  border-bottom: 3px solid #27ae60;
+  padding-bottom: 8px;
+  font-size: 16px;
+}
+.management-popup h3 {
+  margin: 15px 0 8px 0;
+  color: #27ae60;
+  font-size: 14px;
+  border-bottom: 1px solid #bdc3c7;
+  padding-bottom: 4px;
+}
+.management-popup .info-section {
+  margin-bottom: 15px;
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 5px;
+}
+.management-popup .info-row {
+  display: flex;
+  margin-bottom: 8px;
+}
+.management-popup .info-label {
+  font-weight: bold;
+  color: #34495e;
+  margin-right: 10px;
+  min-width: 120px;
+}
+.management-popup .info-value {
+  color: #7f8c8d;
+  flex: 1;
+}
+.management-popup .actions-list {
+  margin-bottom: 15px;
+}
+.management-popup .action-item {
+  background: #ecf0f1;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 4px solid #27ae60;
+}
+.management-popup .action-text {
+  font-size: 13px;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+.management-popup .action-costs {
+  font-size: 11px;
+  color: #7f8c8d;
+  display: flex;
+  gap: 15px;
+}
+.management-popup .economics {
+  background: #e8f5e8;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #27ae60;
+}
+.management-popup .economics-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+.management-popup .economics-label {
+  font-weight: bold;
+  color: #27ae60;
+}
+.management-popup .economics-value {
+  color: #2c3e50;
+  font-weight: bold;
+}
+`;
+
+// Add CSS styles for polygon labels
+const polygonLabelStyle = `
+.polygon-label {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #e74c3c;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  color: #c0392b;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+`;
+
+// Inject management popup style into the document head
+function injectManagementPopupStyle() {
+  if (!document.getElementById('management-popup-style')) {
+    const style = document.createElement('style');
+    style.id = 'management-popup-style';
+    style.innerHTML = managementPopupStyle;
+    document.head.appendChild(style);
+  }
+}
+
+// Inject polygon label style into the document head
+function injectPolygonLabelStyle() {
+  if (!document.getElementById('polygon-label-style')) {
+    const style = document.createElement('style');
+    style.id = 'polygon-label-style';
+    style.innerHTML = polygonLabelStyle;
+    document.head.appendChild(style);
+  }
+}
 
 // Add CSS styles for the popup
 const popupStyle = `
@@ -123,12 +307,91 @@ function formatPropertyName(name: string): string {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 }
+
+// Function to calculate centroid of a polygon
+function calculateCentroid(geometry: any): [number, number] {
+  if (geometry.type === 'Polygon') {
+    const coordinates = geometry.coordinates[0]; // First ring of the polygon
+    let x = 0, y = 0;
+    for (const coord of coordinates) {
+      x += coord[0]; // longitude
+      y += coord[1]; // latitude
+    }
+    return [y / coordinates.length, x / coordinates.length]; // [lat, lng] for Leaflet
+  } else if (geometry.type === 'MultiPolygon') {
+    // For MultiPolygon, use the first polygon
+    const coordinates = geometry.coordinates[0][0]; // First ring of first polygon
+    let x = 0, y = 0;
+    for (const coord of coordinates) {
+      x += coord[0]; // longitude
+      y += coord[1]; // latitude
+    }
+    return [y / coordinates.length, x / coordinates.length]; // [lat, lng] for Leaflet
+  }
+  return [0, 0]; // fallback
+}
 const Map: React.FC<MapProps> = ({ 
   center = [57.538, 15.182], // Center on Ustorp
   zoom = 14 
 }) => {
   const [propertyData, setPropertyData] = useState<FeatureCollection | null>(null);
-  const [shapefileData, setShapefileData] = useState<FeatureCollection | null>(null);
+  // const [shapefileData, setShapefileData] = useState<FeatureCollection | null>(null);
+  const [nviBiotopesData, setNviBiotopesData] = useState<FeatureCollection | null>(null);
+  const [managementData, setManagementData] = useState<Feature | null>(null);
+  const [managementPlansData, setManagementPlansData] = useState<{[key: string]: any}>({});
+  const [areasWithManagementPlans, setAreasWithManagementPlans] = useState<FeatureCollection | null>(null);
+
+  // Function to load management plans for all available objektids
+  const loadManagementPlans = useCallback(async (biotopesData: FeatureCollection) => {
+    const managementPlans: {[key: string]: any} = {};
+    const areasWithPlans: Feature[] = [];
+
+    // Extract all numeric objektids from the biotopes data
+    const objektids = biotopesData.features
+      .map(feature => feature.properties?.Objektid)
+      .filter(id => id && id !== 'Ej naturvärde' && !isNaN(Number(id)))
+      .map(id => String(id));
+
+    // Remove duplicates
+    const uniqueObjektids = Array.from(new Set(objektids));
+
+    // Try to load management plan for each objektid
+    for (const objektid of uniqueObjektids) {
+      try {
+        console.log(`Attempting to load management_plan_${objektid}.csv`);
+        const response = await fetch(`${process.env.PUBLIC_URL}/data/management_plan_${objektid}.csv`);
+        
+        if (response.ok) {
+          const csvText = await response.text();
+          const parsedData = parseManagementPlanCSV(csvText);
+          managementPlans[objektid] = parsedData;
+          
+          // Find the corresponding feature and add it to areasWithPlans
+          const feature = biotopesData.features.find(f => f.properties?.Objektid === objektid);
+          if (feature) {
+            areasWithPlans.push(feature);
+            console.log(`Successfully loaded management plan for objektid ${objektid}`);
+          }
+        } else {
+          console.log(`No management plan found for objektid ${objektid} (${response.status})`);
+        }
+      } catch (error) {
+        console.log(`Failed to load management plan for objektid ${objektid}:`, error);
+      }
+    }
+
+    setManagementPlansData(managementPlans);
+    
+    // Create a FeatureCollection with all areas that have management plans
+    if (areasWithPlans.length > 0) {
+      setAreasWithManagementPlans({
+        type: 'FeatureCollection',
+        features: areasWithPlans
+      });
+    }
+
+    console.log(`Loaded ${Object.keys(managementPlans).length} management plans for objektids:`, Object.keys(managementPlans));
+  }, []);
 
   useEffect(() => {
     // Load Ustorp property borders
@@ -136,27 +399,23 @@ const Map: React.FC<MapProps> = ({
       .then(response => response.json())
       .then((data: FeatureCollection) => setPropertyData(data))
       .catch((error: Error) => console.error('Error loading property borders:', error));
-
-    // Load Shapefile data
-    fetch(`${process.env.PUBLIC_URL}/data/NVI_Eksjo_Geodata_250402.zip`)
-      .then(response => response.arrayBuffer())
-      .then(buffer => shp.parseZip(buffer))
-      .then((data) => {
-        const featureCollection = Array.isArray(data) ? data[0] : data;
-        // Reproject all features from SWEREF99 TM to WGS84
-        featureCollection.features = featureCollection.features.map((feature: any) => ({
-          ...feature,
-          geometry: reprojectGeometry(feature.geometry),
-        }));
-        setShapefileData(featureCollection);
+    // Load NVI biotopes GeoJSON
+    fetch(`${process.env.PUBLIC_URL}/data/nvi_biotopes.json`)
+      .then(response => response.json())
+      .then((data: FeatureCollection) => {
+        setNviBiotopesData(data);
+        
+        // Load management plans for all objektids
+        loadManagementPlans(data);
       })
-      .catch((error: Error) => {
-        console.error('Error loading Shapefile:', error);
-        if (error instanceof Error) {
-          console.error('Error details:', error.message);
-        }
-      });
-  }, []);
+      .catch((error: Error) => console.error('Error loading NVI biotopes:', error));
+    // Load management data
+    fetch(`${process.env.PUBLIC_URL}/data/management_ustorp.json`)
+      .then(response => response.json())
+      .then((data: Feature) => setManagementData(data))
+      .catch((error: Error) => console.error('Error loading management data:', error));
+
+  }, [loadManagementPlans]);
 
   const propertyStyle = {
     fillColor: '#3388ff',
@@ -167,6 +426,8 @@ const Map: React.FC<MapProps> = ({
 
   useEffect(() => {
     injectPopupStyle();
+    injectManagementPopupStyle();
+    injectPolygonLabelStyle();
   }, []);
 
   return (
@@ -216,11 +477,11 @@ const Map: React.FC<MapProps> = ({
           )}
         </LayersControl.Overlay>
 
-        <LayersControl.Overlay checked name="NVI 2024 Data">
-          {shapefileData && (
+        <LayersControl.Overlay checked name="2024 NVI Baseline">
+          {nviBiotopesData && (
             <GeoJSON 
-              data={shapefileData} 
-              style={shapefileStyle}
+              data={nviBiotopesData} 
+              style={nviBiotopesStyle}
               onEachFeature={(feature, layer) => {
                 const properties = feature.properties || {};
                 const popupContent = `
@@ -246,6 +507,144 @@ const Map: React.FC<MapProps> = ({
             />
           )}
         </LayersControl.Overlay>
+
+        <LayersControl.Overlay name="Management Plans per area" checked>
+          {areasWithManagementPlans && (
+            <GeoJSON
+              data={areasWithManagementPlans}
+              style={{
+                fillColor: '#e74c3c', // red
+                fillOpacity: 0.7,
+                color: '#c0392b', // dark red
+                weight: 4,
+              }}
+              onEachFeature={(feature, layer) => {
+                const objektid = feature.properties?.Objektid;
+                const managementPlan = managementPlansData[objektid];
+                
+                if (managementPlan) {
+                  const popupContent = `
+                    <div class="management-popup">
+                      <h2>${managementPlan.title}</h2>
+                      <div style="margin-bottom: 10px; padding: 5px; background: #3498db; color: white; border-radius: 3px; text-align: center;">
+                        <strong>Område ${objektid}</strong>
+                      </div>
+                      
+                      <div class="info-section">
+                        <h3>Grundinformation</h3>
+                        <div class="info-row">
+                          <span class="info-label">Nuvarande biotop:</span>
+                          <span class="info-value">${managementPlan.currentBiotope}</span>
+                        </div>
+                        <div class="info-row">
+                          <span class="info-label">Målbiotop:</span>
+                          <span class="info-value">${managementPlan.targetBiotope}</span>
+                        </div>
+                        <div class="info-row">
+                          <span class="info-label">Tidslinje:</span>
+                          <span class="info-value">${managementPlan.timeline}</span>
+                        </div>
+                        <div class="info-row">
+                          <span class="info-label">Areal:</span>
+                          <span class="info-value">${managementPlan.area} ha</span>
+                        </div>
+                        <div class="info-row">
+                          <span class="info-label">Naturvärdesklass:</span>
+                          <span class="info-value">${managementPlan.naturalValueClass}</span>
+                        </div>
+                      </div>
+
+                      <div class="info-section">
+                        <h3>Skötselsammanfattning</h3>
+                        <div class="info-value">${managementPlan.managementSummary}</div>
+                      </div>
+
+                      <div class="actions-list">
+                        <h3>Planerade Åtgärder</h3>
+                        ${managementPlan.actions.map((action: any) => `
+                          <div class="action-item">
+                            <div class="action-text">${action.action}</div>
+                            <div class="action-costs">
+                              <span>20 år: ${action.cost20Years}</span>
+                              <span>Per år: ${action.costPerYear}</span>
+                              <span>Per ha/år: ${action.costPerHectareYear}</span>
+                            </div>
+                          </div>
+                        `).join('')}
+                      </div>
+
+                      <div class="economics">
+                        <h3>Ekonomisk Sammanfattning</h3>
+                        <div class="economics-row">
+                          <span class="economics-label">Total kostnad:</span>
+                          <span class="economics-value">${managementPlan.economics.totalCost}</span>
+                        </div>
+                        <div class="economics-row">
+                          <span class="economics-label">Total intäkt:</span>
+                          <span class="economics-value">${managementPlan.economics.totalIncome}</span>
+                        </div>
+                        <div class="economics-row">
+                          <span class="economics-label">Netto resultat:</span>
+                          <span class="economics-value">${managementPlan.economics.netResult}</span>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                  layer.bindPopup(popupContent, {
+                    maxWidth: 550,
+                    maxHeight: 650,
+                    autoPan: true,
+                  });
+                }
+              }}
+            />
+          )}
+        </LayersControl.Overlay>
+
+        <LayersControl.Overlay name="Area Labels" checked>
+          {nviBiotopesData && (
+            <GeoJSON
+              data={nviBiotopesData}
+              style={() => ({
+                fillOpacity: 0,
+                color: 'transparent',
+                weight: 0,
+              })}
+              onEachFeature={(feature, layer) => {
+                const objektid = feature.properties?.Objektid;
+                
+                // Only show labels for numeric objektids (not "Ej naturvärde")
+                if (objektid && objektid !== 'Ej naturvärde' && !isNaN(Number(objektid))) {
+                  const centroid = calculateCentroid(feature.geometry);
+                  const labelIcon = L.divIcon({
+                    html: `<div class="polygon-label">${objektid}</div>`,
+                    className: 'custom-div-icon',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
+                  });
+                  
+                  const labelMarker = L.marker(centroid, { icon: labelIcon });
+                  
+                  // Add the label marker to the same layer group as the polygon
+                  layer.on('add', (e) => {
+                    const map = e.target._map;
+                    if (map) {
+                      labelMarker.addTo(map);
+                    }
+                  });
+                  
+                  layer.on('remove', (e) => {
+                    const map = e.target._map;
+                    if (map && labelMarker) {
+                      map.removeLayer(labelMarker);
+                    }
+                  });
+                }
+              }}
+            />
+          )}
+        </LayersControl.Overlay>
+
       </LayersControl>
     </MapContainer>
   );
