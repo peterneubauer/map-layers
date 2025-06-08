@@ -1,6 +1,8 @@
 import React from 'react';
 import './App.css';
 import Map from './components/Map';
+import Footer from './components/Footer';
+import People from './components/People';
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
       <section className="map-section" id="map-section">
         <Map />
       </section>
+      <People />
+      <Footer />
       {/* Add more sections here if needed */}
     </div>
   );
