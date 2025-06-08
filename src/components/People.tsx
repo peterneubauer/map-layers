@@ -18,16 +18,6 @@ const People: React.FC = () => {
           </div>
           <div className="team-member">
             <div className="member-image">
-              <img src="/map-layers/team/sindre.webp" alt="Sindre Magnusson" />
-            </div>
-            <h3>Sindre Magnusson</h3>
-            <p className="role">Chairman of Framtidens Natur & Kulturarv</p>
-            <p className="bio">
-              Leading the foundation that manages NaturaTua's conservation efforts, ensuring the highest standards in biodiversity protection and restoration.
-            </p>
-          </div>
-          <div className="team-member">
-            <div className="member-image">
               <img src="/map-layers/team/rickard.webp" alt="Rickard Vernet" />
             </div>
             <h3>Rickard Vernet</h3>
@@ -66,6 +56,17 @@ const People: React.FC = () => {
               Sustainability specialist and asset manager with a focus on sustainable investments and ESG analysis, business development, and ecosystem-supporting innovation.
             </p>
           </div>
+          <div className="team-member">
+            <div className="member-image">
+              <img src="/map-layers/team/sindre.webp" alt="Sindre Magnusson" />
+            </div>
+            <h3>Sindre Magnusson</h3>
+            <p className="role">Chairman of Framtidens Natur & Kulturarv</p>
+            <p className="bio">
+              Leading the foundation that manages NaturaTua's conservation efforts, ensuring the highest standards in biodiversity protection and restoration.
+            </p>
+          </div>
+
         </div>
       </div>
     </section>

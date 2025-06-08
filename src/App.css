@@ -61,6 +61,7 @@ body {
   font-family: 'Work Sans', Arial, sans-serif;
   margin: 0;
   padding: 0;
+  background: #1e2a1e;
 }
 
 .hero {
@@ -116,7 +117,6 @@ body {
   min-height: 80vh;
   position: relative;
   z-index: 2;
-  background: #f8f8f8;
   padding: 0;
 }
 
@@ -246,7 +246,6 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.7);
 }
 
 .people-content {
@@ -276,7 +275,7 @@ body {
 }
 
 .team-member {
-  background: rgba(30, 40, 30, 0.7);
+  background: rgba(0,0,0,0.6);
   border: 2px solid rgba(120, 200, 120, 0.25);
   border-radius: 18px;
   padding: 2.2rem 1.5rem;
@@ -297,6 +296,7 @@ body {
   overflow: hidden;
   border: 3px solid rgba(255, 255, 255, 0.2);
   transition: border-color 0.3s ease;
+  background: #1e2a1e;
 }
 
 .team-member:hover .member-image {
@@ -361,4 +361,9 @@ body {
 .people-section,
 .footer {
   background: #1e2a1e;
+}
+
+.fullscreen-wrapper,
+.leaflet-container {
+  background: #1e2a1e !important;
 }
