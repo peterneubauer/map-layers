@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import L, { LeafletEvent } from 'leaflet';
 import { Feature, FeatureCollection } from 'geojson';
 
 // Fix for default marker icons in React-Leaflet
@@ -40,12 +40,19 @@ interface MapProps {
   zoom?: number;
 }
 
-// Component to handle map updates
-const MapUpdater: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
+// CustomPanes component to create custom panes with low z-index
+const CustomPanes: React.FC = () => {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
+    if (!map.getPane('borderPane')) {
+      map.createPane('borderPane');
+      map.getPane('borderPane')!.style.zIndex = '200';
+    }
+    if (!map.getPane('labelPane')) {
+      map.createPane('labelPane');
+      map.getPane('labelPane')!.style.zIndex = '201';
+    }
+  }, [map]);
   return null;
 };
 
@@ -383,6 +390,7 @@ function calculateCentroid(geometry: any): [number, number] {
   }
   return [0, 0]; // fallback
 }
+
 const Map: React.FC<MapProps> = ({ 
   center = [57.538, 15.182], // Center on Ustorp
   zoom = 14 
@@ -514,221 +522,217 @@ const Map: React.FC<MapProps> = ({
       <MapContainer 
         center={center} 
         zoom={zoom} 
-        style={{ 
-          height: isFullscreen ? '100vh' : '80vh', 
-          width: '100%' 
-        }}
+        style={{ height: isFullscreen ? '100vh' : '80vh', width: '100%' }}
       >
-        <MapUpdater center={center} zoom={zoom} />
-      
-              <LayersControl position={isFullscreen ? "topright" : "topleft"}>
-      <LayersControl.BaseLayer checked name="Satellite">
-          <TileLayer
-            attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+        <CustomPanes />
+        {/* Border Layer - always at the bottom */}
+        {propertyData && (
+          <GeoJSON
+            data={propertyData}
+            style={propertyStyle}
+            pane="borderPane"
+            onEachFeature={(feature: Feature, layer: L.Layer) => {
+              if (layer instanceof L.GeoJSON) {
+                layer.bindPopup(`
+                  <strong>Property:</strong> ${feature.properties?.name || 'No name available'}
+                `);
+              }
+            }}
           />
-        </LayersControl.BaseLayer>
-        
-        <LayersControl.BaseLayer name="OpenStreetMap">
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        )}
+        {/* Label Layer - always at the bottom */}
+        {nviBiotopesData && (
+          <GeoJSON
+            data={nviBiotopesData}
+            style={nviBiotopesStyle}
+            pane="labelPane"
+            onEachFeature={(feature, layer) => {
+              const properties = feature.properties || {};
+              const popupContent = `
+                <div class="nvi-popup">
+                  <h3>NVI Feature Details</h3>
+                  ${Object.entries(properties)
+                    .map(
+                      ([key, value]) =>
+                        `<div class="property-row">
+                          <span class="property-label">${formatPropertyName(key)}:</span>
+                          <span class="property-value">${value ?? 'N/A'}</span>
+                        </div>`
+                    )
+                    .join('')}
+                </div>
+              `;
+              layer.bindPopup(popupContent, {
+                maxWidth: 350,
+                maxHeight: 300,
+                autoPan: true,
+              });
+            }}
           />
-        </LayersControl.BaseLayer>
-        
-        
-        <LayersControl.BaseLayer name="Terrain">
-          <TileLayer
-            attribution='&copy; <a href="https://www.stadiamaps.com/">Stadia Maps</a>'
-            url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
-          />
-        </LayersControl.BaseLayer>
-
-        <LayersControl.Overlay checked name="NaturaTua Ustorp Boundaries">
-          {propertyData && (
-            <GeoJSON 
-              data={propertyData} 
-              style={propertyStyle}
-              onEachFeature={(feature: Feature, layer: L.Layer) => {
-                if (layer instanceof L.GeoJSON) {
-                  layer.bindPopup(`
-                    <strong>Property:</strong> ${feature.properties?.name || 'No name available'}
-                  `);
-                }
-              }}
+        )}
+        <LayersControl position="topleft">
+          <LayersControl.BaseLayer checked name="Satellite">
+            <TileLayer
+              attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
             />
-          )}
-        </LayersControl.Overlay>
-
-        <LayersControl.Overlay checked name="2024 NVI Baseline">
-          {nviBiotopesData && (
-            <GeoJSON 
-              data={nviBiotopesData} 
-              style={nviBiotopesStyle}
-              onEachFeature={(feature, layer) => {
-                const properties = feature.properties || {};
-                const popupContent = `
-                  <div class="nvi-popup">
-                    <h3>NVI Feature Details</h3>
-                    ${Object.entries(properties)
-                      .map(
-                        ([key, value]) =>
-                          `<div class="property-row">
-                            <span class="property-label">${formatPropertyName(key)}:</span>
-                            <span class="property-value">${value ?? 'N/A'}</span>
-                          </div>`
-                      )
-                      .join('')}
-                  </div>
-                `;
-                layer.bindPopup(popupContent, {
-                  maxWidth: 350,
-                  maxHeight: 300,
-                  autoPan: true,
-                });
-              }}
+          </LayersControl.BaseLayer>
+          
+          <LayersControl.BaseLayer name="OpenStreetMap">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-          )}
-        </LayersControl.Overlay>
+          </LayersControl.BaseLayer>
+          
+          
+          <LayersControl.BaseLayer name="Terrain">
+            <TileLayer
+              attribution='&copy; <a href="https://www.stadiamaps.com/">Stadia Maps</a>'
+              url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+            />
+          </LayersControl.BaseLayer>
 
-        <LayersControl.Overlay name="Management Plans per area" checked>
-          {areasWithManagementPlans && (
-            <GeoJSON
-              data={areasWithManagementPlans}
-              style={{
-                fillColor: '#e74c3c', // red
-                fillOpacity: 0.7,
-                color: '#c0392b', // dark red
-                weight: 4,
-              }}
-              onEachFeature={(feature, layer) => {
-                const objektid = feature.properties?.Objektid;
-                const managementPlan = managementPlansData[objektid];
-                
-                if (managementPlan) {
-                  const popupContent = `
-                    <div class="management-popup">
-                      <h2>${managementPlan.title}</h2>
-                      <div style="margin-bottom: 10px; padding: 5px; background: #3498db; color: white; border-radius: 3px; text-align: center;">
-                        <strong>Område ${objektid}</strong>
-                      </div>
-                      
-                      <div class="info-section">
-                        <h3>Grundinformation</h3>
-                        <div class="info-row">
-                          <span class="info-label">Nuvarande biotop:</span>
-                          <span class="info-value">${managementPlan.currentBiotope}</span>
+          <LayersControl.Overlay name="Management Plans per area" checked>
+            {areasWithManagementPlans && (
+              <GeoJSON
+                data={areasWithManagementPlans}
+                style={{
+                  fillColor: '#e74c3c', // red
+                  fillOpacity: 0.7,
+                  color: '#c0392b', // dark red
+                  weight: 4,
+                }}
+                pane="labelPane"
+                onEachFeature={(feature, layer) => {
+                  const objektid = feature.properties?.Objektid;
+                  const managementPlan = managementPlansData[objektid];
+                  
+                  if (managementPlan) {
+                    const popupContent = `
+                      <div class="management-popup">
+                        <h2>${managementPlan.title}</h2>
+                        <div style="margin-bottom: 10px; padding: 5px; background: #3498db; color: white; border-radius: 3px; text-align: center;">
+                          <strong>Område ${objektid}</strong>
                         </div>
-                        <div class="info-row">
-                          <span class="info-label">Målbiotop:</span>
-                          <span class="info-value">${managementPlan.targetBiotope}</span>
-                        </div>
-                        <div class="info-row">
-                          <span class="info-label">Tidslinje:</span>
-                          <span class="info-value">${managementPlan.timeline}</span>
-                        </div>
-                        <div class="info-row">
-                          <span class="info-label">Areal:</span>
-                          <span class="info-value">${managementPlan.area} ha</span>
-                        </div>
-                        <div class="info-row">
-                          <span class="info-label">Naturvärdesklass:</span>
-                          <span class="info-value">${managementPlan.naturalValueClass}</span>
-                        </div>
-                      </div>
-
-                      <div class="info-section">
-                        <h3>Skötselsammanfattning</h3>
-                        <div class="info-value">${managementPlan.managementSummary}</div>
-                      </div>
-
-                      <div class="actions-list">
-                        <h3>Planerade Åtgärder</h3>
-                        ${managementPlan.actions.map((action: any) => `
-                          <div class="action-item">
-                            <div class="action-text">${action.action}</div>
-                            <div class="action-costs">
-                              <span>20 år: ${action.cost20Years}</span>
-                              <span>Per år: ${action.costPerYear}</span>
-                              <span>Per ha/år: ${action.costPerHectareYear}</span>
-                            </div>
+                        
+                        <div class="info-section">
+                          <h3>Grundinformation</h3>
+                          <div class="info-row">
+                            <span class="info-label">Nuvarande biotop:</span>
+                            <span class="info-value">${managementPlan.currentBiotope}</span>
                           </div>
-                        `).join('')}
+                          <div class="info-row">
+                            <span class="info-label">Målbiotop:</span>
+                            <span class="info-value">${managementPlan.targetBiotope}</span>
+                          </div>
+                          <div class="info-row">
+                            <span class="info-label">Tidslinje:</span>
+                            <span class="info-value">${managementPlan.timeline}</span>
+                          </div>
+                          <div class="info-row">
+                            <span class="info-label">Areal:</span>
+                            <span class="info-value">${managementPlan.area} ha</span>
+                          </div>
+                          <div class="info-row">
+                            <span class="info-label">Naturvärdesklass:</span>
+                            <span class="info-value">${managementPlan.naturalValueClass}</span>
+                          </div>
+                        </div>
+
+                        <div class="info-section">
+                          <h3>Skötselsammanfattning</h3>
+                          <div class="info-value">${managementPlan.managementSummary}</div>
+                        </div>
+
+                        <div class="actions-list">
+                          <h3>Planerade Åtgärder</h3>
+                          ${managementPlan.actions.map((action: any) => `
+                            <div class="action-item">
+                              <div class="action-text">${action.action}</div>
+                              <div class="action-costs">
+                                <span>20 år: ${action.cost20Years}</span>
+                                <span>Per år: ${action.costPerYear}</span>
+                                <span>Per ha/år: ${action.costPerHectareYear}</span>
+                              </div>
+                            </div>
+                          `).join('')}
+                        </div>
+
+                        <div class="economics">
+                          <h3>Ekonomisk Sammanfattning</h3>
+                          <div class="economics-row">
+                            <span class="economics-label">Total kostnad:</span>
+                            <span class="economics-value">${managementPlan.economics.totalCost}</span>
+                          </div>
+                          <div class="economics-row">
+                            <span class="economics-label">Total intäkt:</span>
+                            <span class="economics-value">${managementPlan.economics.totalIncome}</span>
+                          </div>
+                          <div class="economics-row">
+                            <span class="economics-label">Netto resultat:</span>
+                            <span class="economics-value">${managementPlan.economics.netResult}</span>
+                          </div>
+                        </div>
                       </div>
+                    `;
+                    layer.bindPopup(popupContent, {
+                      maxWidth: 550,
+                      maxHeight: 650,
+                      autoPan: true,
+                    });
+                  }
+                }}
+              />
+            )}
+          </LayersControl.Overlay>
 
-                      <div class="economics">
-                        <h3>Ekonomisk Sammanfattning</h3>
-                        <div class="economics-row">
-                          <span class="economics-label">Total kostnad:</span>
-                          <span class="economics-value">${managementPlan.economics.totalCost}</span>
-                        </div>
-                        <div class="economics-row">
-                          <span class="economics-label">Total intäkt:</span>
-                          <span class="economics-value">${managementPlan.economics.totalIncome}</span>
-                        </div>
-                        <div class="economics-row">
-                          <span class="economics-label">Netto resultat:</span>
-                          <span class="economics-value">${managementPlan.economics.netResult}</span>
-                        </div>
-                      </div>
-                    </div>
-                  `;
-                  layer.bindPopup(popupContent, {
-                    maxWidth: 550,
-                    maxHeight: 650,
-                    autoPan: true,
-                  });
-                }
-              }}
-            />
-          )}
-        </LayersControl.Overlay>
+          <LayersControl.Overlay name="Area Labels" checked>
+            {nviBiotopesData && (
+              <GeoJSON
+                data={nviBiotopesData}
+                style={() => ({
+                  fillOpacity: 0,
+                  color: 'transparent',
+                  weight: 0,
+                })}
+                pane="labelPane"
+                onEachFeature={(feature, layer) => {
+                  const objektid = feature.properties?.Objektid;
+                  
+                  // Only show labels for numeric objektids (not "Ej naturvärde")
+                  if (objektid && objektid !== 'Ej naturvärde' && !isNaN(Number(objektid))) {
+                    const centroid = calculateCentroid(feature.geometry);
+                    const labelIcon = L.divIcon({
+                      html: `<div class="polygon-label">${objektid}</div>`,
+                      className: 'custom-div-icon',
+                      iconSize: [40, 40],
+                      iconAnchor: [20, 20]
+                    });
+                    
+                    const labelMarker = L.marker(centroid, { icon: labelIcon });
+                    
+                    // Add the label marker to the same layer group as the polygon
+                    layer.on('add', (e) => {
+                      const map = e.target._map;
+                      if (map) {
+                        labelMarker.addTo(map);
+                      }
+                    });
+                    
+                    layer.on('remove', (e) => {
+                      const map = e.target._map;
+                      if (map && labelMarker) {
+                        map.removeLayer(labelMarker);
+                      }
+                    });
+                  }
+                }}
+              />
+            )}
+          </LayersControl.Overlay>
 
-        <LayersControl.Overlay name="Area Labels" checked>
-          {nviBiotopesData && (
-            <GeoJSON
-              data={nviBiotopesData}
-              style={() => ({
-                fillOpacity: 0,
-                color: 'transparent',
-                weight: 0,
-              })}
-              onEachFeature={(feature, layer) => {
-                const objektid = feature.properties?.Objektid;
-                
-                // Only show labels for numeric objektids (not "Ej naturvärde")
-                if (objektid && objektid !== 'Ej naturvärde' && !isNaN(Number(objektid))) {
-                  const centroid = calculateCentroid(feature.geometry);
-                  const labelIcon = L.divIcon({
-                    html: `<div class="polygon-label">${objektid}</div>`,
-                    className: 'custom-div-icon',
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 20]
-                  });
-                  
-                  const labelMarker = L.marker(centroid, { icon: labelIcon });
-                  
-                  // Add the label marker to the same layer group as the polygon
-                  layer.on('add', (e) => {
-                    const map = e.target._map;
-                    if (map) {
-                      labelMarker.addTo(map);
-                    }
-                  });
-                  
-                  layer.on('remove', (e) => {
-                    const map = e.target._map;
-                    if (map && labelMarker) {
-                      map.removeLayer(labelMarker);
-                    }
-                  });
-                }
-              }}
-            />
-          )}
-        </LayersControl.Overlay>
-
-              </LayersControl>
+        </LayersControl>
       </MapContainer>
     </div>
   );

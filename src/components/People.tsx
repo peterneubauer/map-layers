@@ -33,7 +33,7 @@ const People: React.FC = () => {
             <h3>Viktor Elliot</h3>
             <p className="role">Initiator</p>
             <p className="bio">
-              Lecturer at the School of Business, Economics and Law at the University of Gothenburg, specializing in research and teaching in accounting and finance. Head of the <a href="https://www.sustainablefinance.se/" target="_blank" rel="noopener noreferrer">Swedish Community for Sustainable Finance</a>, researching how biodiversity can be integrated into financial decision-making.
+              Lecturer at the School of Business, Economics and Law at the University of Gothenburg, specializing in research and teaching in accounting and finance. Head of the <a href="https://www.gu.se/en/research/sustainable-finance" target="_blank" rel="noopener noreferrer">Swedish Community for Sustainable Finance</a>, researching how biodiversity can be integrated into financial decision-making.
             </p>
           </div>
           <div className="team-member">
