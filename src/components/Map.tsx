@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L, { LeafletEvent } from 'leaflet';
+import L from 'leaflet';
 import { Feature, FeatureCollection } from 'geojson';
 
 // Fix for default marker icons in React-Leaflet
