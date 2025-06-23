@@ -39,17 +39,36 @@ function App() {
           <button className="cta-btn" onClick={() => setShowContact(true)}>Contact Us</button>
           {showContact && (
             <div className="contact-modal" style={{position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-              <form className="contact-form" onSubmit={handleContactSubmit} style={{background: 'white', padding: '2rem', borderRadius: '10px', minWidth: '300px', maxWidth: '90vw', boxShadow: '0 4px 24px rgba(0,0,0,0.2)'}}>
-                <h2 style={{marginTop: 0, color: '#27ae60'}}>Contact Us</h2>
-                <label style={{display: 'block', marginBottom: '0.5rem'}}>Name:<br/>
-                  <input type="text" value={contactName} onChange={e => setContactName(e.target.value)} required style={{width: '100%', padding: '0.5rem', marginTop: '0.2rem'}} />
-                </label>
-                <label style={{display: 'block', marginBottom: '0.5rem'}}>Email:<br/>
-                  <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} required style={{width: '100%', padding: '0.5rem', marginTop: '0.2rem'}} />
-                </label>
-                <label style={{display: 'block', marginBottom: '0.5rem'}}>Message:<br/>
-                  <textarea value={contactMessage} onChange={e => setContactMessage(e.target.value)} required rows={4} style={{width: '100%', padding: '0.5rem', marginTop: '0.2rem'}} />
-                </label>
+              <form
+                className="contact-form"
+                onSubmit={handleContactSubmit}
+                style={{
+                  background: 'white',
+                  padding: '2rem',
+                  borderRadius: '10px',
+                  minWidth: '300px',
+                  maxWidth: '400px',
+                  width: '100%',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
+                  margin: '0 auto'
+                }}
+              >
+                <h2 style={{marginTop: 0, color: '#27ae60', textAlign: 'center'}}>Contact Us</h2>
+                <div style={{color: '#333', fontSize: '1rem', marginBottom: '1rem', textAlign: 'center'}}>
+                  Fill out the form below to contact us. Your message will be sent to <b>info@naturatua.com</b> and we will get back to you as soon as possible.
+                </div>
+                <div style={{marginBottom: '0.7rem'}}>
+                  <label htmlFor="contact-name" style={{fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', color: '#333', textAlign: 'left'}}>Name</label>
+                  <input id="contact-name" type="text" value={contactName} onChange={e => setContactName(e.target.value)} required style={{width: '100%', padding: '0.5rem'}} />
+                </div>
+                <div style={{marginBottom: '0.7rem'}}>
+                  <label htmlFor="contact-email" style={{fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', color: '#333', textAlign: 'left'}}>Email</label>
+                  <input id="contact-email" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} required style={{width: '100%', padding: '0.5rem'}} />
+                </div>
+                <div style={{marginBottom: '0.7rem'}}>
+                  <label htmlFor="contact-message" style={{fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', color: '#333', textAlign: 'left'}}>Message</label>
+                  <textarea id="contact-message" value={contactMessage} onChange={e => setContactMessage(e.target.value)} required rows={4} style={{width: '100%', padding: '0.5rem'}} />
+                </div>
                 <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '1rem'}}>
                   <button type="submit" className="cta-btn" style={{marginRight: '1rem'}}>Send</button>
                   <button type="button" className="cta-btn" style={{background: '#ccc', color: '#222'}} onClick={() => setShowContact(false)}>Cancel</button>
