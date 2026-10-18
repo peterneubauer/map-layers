@@ -8,21 +8,21 @@ const Footer: React.FC = () => {
         <div className="partner-logos">
           <a href="https://framtidensnatur.se/" target="_blank" rel="noopener noreferrer">
             <img 
-              src="/map-layers/logos/framtidens-natur.svg" 
+              src={`${process.env.PUBLIC_URL}/logos/framtidens-natur.svg`} 
               alt="Framtidens Natur" 
               className="partner-logo"
             />
           </a>
           <a href="https://www.pivotal.earth/" target="_blank" rel="noopener noreferrer">
             <img 
-              src="/map-layers/logos/pivotal.svg" 
+              src={`${process.env.PUBLIC_URL}/logos/pivotal.svg`} 
               alt="Pivotal Earth" 
               className="partner-logo"
             />
           </a>
           <a href="https://www.almi.se/" target="_blank" rel="noopener noreferrer">
             <img 
-              src="/map-layers/logos/almi.svg" 
+              src={`${process.env.PUBLIC_URL}/logos/almi.svg`} 
               alt="Almi" 
               className="partner-logo"
             />

@@ -8,7 +8,7 @@ const People: React.FC = () => {
         <div className="team-grid">
           <div className="team-member">
             <div className="member-image">
-              <img src="/map-layers/team/peter_neubauer.webp" alt="Peter Neubauer" />
+              <img src={`${process.env.PUBLIC_URL}/team/peter_neubauer.webp`} alt="Peter Neubauer" />
             </div>
             <h3>Peter Neubauer</h3>
             <p className="role">Founder</p>
@@ -18,7 +18,7 @@ const People: React.FC = () => {
           </div>
           <div className="team-member">
             <div className="member-image">
-              <img src="/map-layers/team/rickard.webp" alt="Rickard Vernet" />
+              <img src={`${process.env.PUBLIC_URL}/team/rickard.webp`} alt="Rickard Vernet" />
             </div>
             <h3>Rickard Vernet</h3>
             <p className="role">Founder</p>
@@ -28,7 +28,7 @@ const People: React.FC = () => {
           </div>
           <div className="team-member">
             <div className="member-image">
-              <img src="/map-layers/team/viktor.webp" alt="Viktor Elliot" />
+              <img src={`${process.env.PUBLIC_URL}/team/viktor.webp`} alt="Viktor Elliot" />
             </div>
             <h3>Viktor Elliot</h3>
             <p className="role">Initiator</p>
@@ -38,7 +38,7 @@ const People: React.FC = () => {
           </div>
           <div className="team-member">
             <div className="member-image">
-              <img src="/map-layers/team/martin_wolff.webp" alt="Martin Wolff" />
+              <img src={`${process.env.PUBLIC_URL}/team/martin_wolff.webp`} alt="Martin Wolff" />
             </div>
             <h3>Martin Wolff</h3>
             <p className="role">Initiator</p>
@@ -48,7 +48,7 @@ const People: React.FC = () => {
           </div>
           <div className="team-member">
             <div className="member-image">
-              <img src="/map-layers/team/sindre.webp" alt="Sindre Magnusson" />
+              <img src={`${process.env.PUBLIC_URL}/team/sindre.webp`} alt="Sindre Magnusson" />
             </div>
             <h3>Sindre Magnusson</h3>
             <p className="role">Chairman of Framtidens Natur & Kulturarv</p>

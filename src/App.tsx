@@ -26,7 +26,7 @@ function App() {
     <div className="landing-root">
       <section className="hero">
         <div className="logo-container">
-          <img src="/map-layers/naturatua.png" alt="NaturaTua Logo" className="header-title-logo" />
+          <img src={`${process.env.PUBLIC_URL}/naturatua.png`} alt="NaturaTua Logo" className="header-title-logo" />
         </div>
         <div className="hero-content">
           <h1>Ustorp - The Biodiversity Lab</h1>
