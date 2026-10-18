@@ -405,3 +405,23 @@ body {
     padding: 2rem 0;
   }
 }
+/* Bas-data (BaselineData.tsx) */
+.baseline-section { background: #1e2a1e; padding: 4rem 0; color: #fff; }
+.baseline-content { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+.baseline-content h2 { color: #27ae60; text-align: center; margin: 0 0 1rem; }
+.baseline-intro { max-width: 760px; margin: 0 auto 2.5rem; text-align: center; color: rgba(255,255,255,0.8); line-height: 1.6; }
+.baseline-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+.baseline-card { background: rgba(0,0,0,0.35); border: 1px solid rgba(120,200,120,0.25); border-radius: 14px; padding: 1.4rem; display: flex; flex-direction: column; transition: border-color 0.2s; }
+.baseline-card:hover { border-color: #27ae60; }
+.baseline-card h3 { margin: 0 0 0.25rem; font-size: 1.15rem; }
+.baseline-when { margin: 0 0 0.8rem; color: #ffd91a; font-size: 0.85rem; }
+.baseline-card ul { margin: 0; padding-left: 1.1rem; color: rgba(255,255,255,0.85); line-height: 1.5; font-size: 0.95rem; }
+.baseline-card li { margin-bottom: 0.35rem; }
+.baseline-media { margin: -1.4rem -1.4rem 1rem; }
+.baseline-media img { width: 100%; height: 190px; object-fit: cover; display: block; border-radius: 14px 14px 0 0; background: #2a382a; }
+.baseline-media figcaption, .baseline-audio figcaption { font-size: 0.75rem; color: rgba(255,255,255,0.55); padding: 0.4rem 1.4rem 0; }
+.baseline-audio { margin: 1rem 0 0; }
+.baseline-audio audio { width: 100%; }
+.baseline-audio figcaption { padding: 0.3rem 0 0; }
+.baseline-status { align-self: flex-start; margin-top: auto; padding-top: 1rem; font-size: 0.8rem; font-weight: 600; color: #7fd39b; }
+.baseline-media img[src*="spectrogram"] { object-fit: contain; background: #1e2a1e; }
