@@ -27,7 +27,7 @@ function App() {
     <div className="landing-root">
       <section className="hero">
         <div className="logo-container">
-          <img src={`${process.env.PUBLIC_URL}/naturatua.png`} alt="NaturaTua Logo" className="header-title-logo" />
+          <a href="https://naturatua.com/" title="NaturaTua – naturatua.com" aria-label="NaturaTua – go to naturatua.com"><img src={`${process.env.PUBLIC_URL}/naturatua.png`} alt="NaturaTua" className="header-title-logo" /></a>
         </div>
         <div className="hero-content">
           <h1>Ustorp - The Biodiversity Lab</h1>
