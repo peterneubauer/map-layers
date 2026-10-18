@@ -442,3 +442,7 @@ body {
 @media (max-width: 768px) {
   .partner-logo.partner-logo-brand { height: 64px; }
 }
+.partner-logo.partner-logo-almi { height: 46px; padding: 32px 36px; }
+@media (max-width: 768px) {
+  .partner-logo.partner-logo-almi { height: 34px; padding: 25px 28px; }
+}

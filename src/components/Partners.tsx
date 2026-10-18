@@ -17,7 +17,7 @@ const Footer: React.FC = () => {
             <img 
               src={`${process.env.PUBLIC_URL}/logos/almi.svg`} 
               alt="Almi" 
-              className="partner-logo"
+              className="partner-logo partner-logo-brand partner-logo-almi"
             />
           </a>
         </div>
