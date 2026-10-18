@@ -31,7 +31,7 @@ function App() {
         <div className="hero-content">
           <h1>Ustorp - The Biodiversity Lab</h1>
           <p>
-            NaturaTua has been working on establishing a test area of 50 hectares in Southern Sweden in order to be able to test the effect of active management with our partner, the foundation <a href="https://framtidensnatur.se/" style={{ color: 'white' }}>Framtidens Natur och Kulturarv</a>.
+            NaturaTua has been working on establishing a test area of about 47 hectares in Southern Sweden in order to be able to test the effect of active management with our partner, the foundation <a href="https://framtidensnatur.se/" style={{ color: 'white' }}>Framtidens Natur och Kulturarv</a>.
           </p>
           <p>
             Join forces with NaturaTua and our partners to assess, plan, implement and monitor the restoration of biodiversity. The lab is a platform for testing and learning about the effect of active management on biodiversity.
@@ -85,8 +85,8 @@ function App() {
         <div style={{maxWidth: '800px', margin: '0 auto', padding: '0 1.5rem'}}>
           <h2 style={{color: '#27ae60', marginBottom: '1.5rem'}}>Property Information</h2>
           <p><strong>Property designation:</strong> Ustorp 1:6</p>
-          <p><strong>Property Area:</strong> 50 ha</p>
-          <p><strong>Initial Project Area:</strong> 12,7 ha</p>
+          <p><strong>Property Area:</strong> 46.6 ha (after the farmstead was sold off in 2026)</p>
+          <p><strong>BDU Area:</strong> 12.6 ha (Ustorp 1:6, parcel 3), divided into 12 Biodiversity Units of about 1.05 ha each</p>
           <p><strong>Municipality:</strong> Eksjö, Sweden</p>
 
           <h2 style={{color: '#27ae60', margin: '2.5rem 0 1.5rem'}}>Project Implementation</h2>
@@ -94,7 +94,7 @@ function App() {
           <p>In close collaboration with Framtidens Natur & Kulturarv, NaturaTua will provide continuous updates on the measures carried out and the project's progress. Alongside this regular reporting, NaturaTua and its partners are actively working to develop more advanced monitoring methods to better track the outcomes of the implemented conservation efforts.</p>
 
           <h2 style={{color: '#27ae60', margin: '2.5rem 0 1.5rem'}}>Management Plan Overview</h2>
-          <p>The primary goal is to restore semi-open natural pastureland with sparse deciduous forest. To achieve this, spruce trees, birch, and undergrowth will be selectively removed, and drainage ditches will be filled in. Grazing will be reintroduced, and certain areas will be managed as unfertilized meadows without the sowing of fodder crops. Formerly cultivated fields will be transitioned into meadowland, with specific actions taken to enrich plant diversity—such as hay transfer, targeted sowing, and planting of meadow species appropriate to the habitat. The amount of dead wood will be increased to support biodiversity. Nest boxes will be installed to improve conditions for birds and bats. Wet forests will largely be left to develop naturally. The entire project area will be enclosed with fencing.</p>
+          <p>The primary goal is to restore semi-open natural pastureland with sparse deciduous forest. To achieve this, spruce trees, birch, and undergrowth will be selectively removed, and drainage ditches will be filled in. Grazing will be reintroduced, and certain areas will be managed as unfertilized meadows without the sowing of fodder crops. Formerly cultivated fields will be transitioned into meadowland, with specific actions taken to enrich plant diversity—such as hay transfer, targeted sowing, and planting of meadow species appropriate to the habitat. The amount of dead wood will be increased to support biodiversity. Nest boxes will be installed to improve conditions for birds and bats. Wet forests will largely be left to develop naturally. Grazing is planned to be managed with virtual fencing, where the animals wear GPS collars.</p>
           <p>By restoring natural pasture and managing meadows without fertilization, while promoting a mix of deciduous tree species, the overall biodiversity is expected to benefit—especially species that are considered threatened or red-listed.</p>
         </div>
       </section>
