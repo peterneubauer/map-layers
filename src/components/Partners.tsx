@@ -9,8 +9,8 @@ const Footer: React.FC = () => {
           <a href="https://framtidensnatur.se/" target="_blank" rel="noopener noreferrer">
             <img 
               src={`${process.env.PUBLIC_URL}/logos/framtidens-natur.svg`} 
-              alt="Framtidens Natur" 
-              className="partner-logo"
+              alt="Insamlingsstiftelsen Framtidens Natur & Kulturarv" 
+              className="partner-logo partner-logo-brand"
             />
           </a>
           <a href="https://www.almi.se/" target="_blank" rel="noopener noreferrer">

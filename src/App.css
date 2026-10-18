@@ -428,3 +428,17 @@ body {
 .baseline-collab { margin: 3rem auto 0; max-width: 760px; text-align: center; padding: 2rem 1.5rem; border: 1px solid rgba(255,217,26,0.45); border-radius: 14px; background: rgba(255,217,26,0.06); }
 .baseline-collab h3 { margin: 0 0 0.75rem; color: #ffd91a; font-size: 1.4rem; }
 .baseline-collab p { margin: 0 0 1.5rem; color: rgba(255,255,255,0.85); line-height: 1.6; }
+
+/* Partnerloggor i egna färger (t.ex. Framtidens Natur & Kulturarv) */
+.partner-logo.partner-logo-brand {
+  filter: none;
+  opacity: 1;
+  height: 90px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 16px;
+  box-sizing: content-box;
+}
+@media (max-width: 768px) {
+  .partner-logo.partner-logo-brand { height: 64px; }
+}

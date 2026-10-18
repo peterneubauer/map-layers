@@ -91,6 +91,10 @@ function App() {
           <p><strong>BDU Area:</strong> 12.6 ha (Ustorp 1:6, parcel 3), divided into 12 Biodiversity Units of about 1.05 ha each</p>
           <p><strong>Municipality:</strong> Eksjö, Sweden</p>
 
+          <h2 style={{color: '#27ae60', margin: '2.5rem 0 1.5rem'}}>About Biodiversity Units (BDU)</h2>
+          <p>The BDU area is divided into twelve Biodiversity Units (BDUs), USTORP-01 to USTORP-12, of about 1.05 hectares each. A BDU is a contract-based right linked to five years of active conservation management of one specific cell, shown in yellow on the map above. It is recorded in NaturaTua's BDU register, so that every unit can be traced and is never sold or counted twice. Click a cell on the map to see its details and the nature value at that spot.</p>
+          <p>Read more about how BDUs work at <a href="https://naturatua.com/en/#BDU" target="_blank" rel="noopener noreferrer" style={{color: '#27ae60'}}>naturatua.com</a>.</p>
+
           <h2 style={{color: '#27ae60', margin: '2.5rem 0 1.5rem'}}>Project Implementation</h2>
           <p>NaturaTua, with the support of an accredited third party, has conducted a Natural Value Inventory (NVI) to establish the area's current biodiversity status ("baseline"). Based on this baseline, the Foundation has developed a tailored management plan for the property.</p>
           <p>In close collaboration with Framtidens Natur & Kulturarv, NaturaTua will provide continuous updates on the measures carried out and the project's progress. Alongside this regular reporting, NaturaTua and its partners are actively working to develop more advanced monitoring methods to better track the outcomes of the implemented conservation efforts.</p>

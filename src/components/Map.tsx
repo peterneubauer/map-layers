@@ -61,14 +61,54 @@ const FitToBdu: React.FC<{ data: FeatureCollection | null }> = ({ data }) => {
   return null;
 };
 
-const bduCard = (p: any) => `
-  <div class="bdu-card-head"><div class="kind">Biodiversity Unit</div><div class="id">${p.bdu_id}</div></div>
+// Laddade datamängder för platskortet (sätts när datan hämtats)
+const DATA: { nvi: FeatureCollection | null; nvi26: FeatureCollection | null; rutor: FeatureCollection | null } =
+  { nvi: null, nvi26: null, rutor: null };
+
+const inRing = (ring: number[][], x: number, y: number) => {
+  let c = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+};
+const inFeature = (f: Feature, x: number, y: number) => {
+  const g: any = f.geometry;
+  const polys = g?.type === 'Polygon' ? [g.coordinates] : g?.type === 'MultiPolygon' ? g.coordinates : [];
+  return polys.some((p: number[][][]) => inRing(p[0], x, y) && !p.slice(1).some((h) => inRing(h, x, y)));
+};
+const hit = (fc: FeatureCollection | null, ll: L.LatLng) => fc?.features.find((f) => inFeature(f, ll.lng, ll.lat));
+
+const NV_CLASS: { [k: string]: string } = {
+  '1': 'Class 1 – highest nature value', '2': 'Class 2 – high nature value', '3': 'Class 3 – considerable nature value',
+  '4': 'Class 4 – some nature value', '0': 'No nature value',
+};
+
+// Ett kort för en punkt i BDU-området: BDU-rutan och naturvärdet just där (NVI 2026 före NVI 2024)
+const placeCard = (ll: L.LatLng) => {
+  const cell = hit(DATA.rutor, ll)?.properties as any;
+  const n26 = hit(DATA.nvi26, ll)?.properties as any;
+  const n24 = n26 ? null : (hit(DATA.nvi, ll)?.properties as any);
+  const row = (k: string, v: string) => `<div class="bdu-card-row"><span>${k}</span><span>${v}</span></div>`;
+  let nv = '';
+  if (n26) nv = row('Class', NV_CLASS[n26.Nvklass] || n26.Nvklass) + row('Survey', `NVI 2026, area ${n26.Objektid} (reclassified)`);
+  else if (n24) nv = row('Class', NV_CLASS[n24.Nvklass] || n24.Nvklass) + row('Survey', `NVI 2024, object ${n24.Objektid}`)
+    + (n24.Biotop ? row('Biotope (Swedish)', String(n24.Biotop).replace(/^,\s*/, '')) : '');
+  else nv = row('Class', 'Not classified');
+  return `
+  <div class="bdu-card-head"><div class="kind">${cell ? 'Biodiversity Unit' : 'BDU area'}</div><div class="id">${cell ? cell.bdu_id : 'Ustorp 1:6, parcel 3'}</div></div>
   <div class="bdu-card-body">
-    <div class="bdu-card-row"><span>Area</span><span>${Number(p.area_ha).toFixed(2)} ha</span></div>
-    <div class="bdu-card-row"><span>Managed</span><span>Apr 2026 – Apr 2031</span></div>
-    <div class="bdu-card-row"><span>Property</span><span>Ustorp 1:6, parcel 3</span></div>
-    <div class="bdu-card-row"><span>Project</span><span>Ustorp Biodiversity</span></div>
+    ${cell ? row('Area', `${Number(cell.area_ha).toFixed(2)} ha`) + row('Managed', 'Apr 2026 – Apr 2031') : row('Area', '12.6 ha, 12 BDUs')}
+    <div class="bdu-card-section">Nature value at this spot</div>
+    ${nv}
+    <div class="bdu-card-hint">Tip: switch off the BDU layers in the layer menu (top left) to click the nature value areas for full details.</div>
   </div>`;
+};
+const openPlaceCard = (e: L.LeafletMouseEvent) => {
+  L.DomEvent.stopPropagation(e);
+  L.popup({ className: 'bdu-popup', maxWidth: 300 }).setLatLng(e.latlng).setContent(placeCard(e.latlng)).openOn((e.target as any)._map);
+};
 
 interface MapProps {
   center?: [number, number];
@@ -301,6 +341,9 @@ const polygonLabelStyle = `
 .bdu-popup .bdu-card-row span:first-child { color: #6b7b6b; }
 .bdu-popup .bdu-card-row span:last-child { font-weight: 600; text-align: right; }
 .bdu-popup .leaflet-popup-close-button { color: #1e2a1e !important; }
+.bdu-popup .leaflet-popup-content { width: 280px !important; }
+.bdu-popup .bdu-card-section { margin: 10px 0 2px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #27ae60; }
+.bdu-popup .bdu-card-hint { margin-top: 8px; font-size: 11px; font-style: italic; color: #7a8a7a; line-height: 1.35; }
 `;
 
 // Add CSS styles for fullscreen functionality
@@ -532,8 +575,8 @@ const Map: React.FC<MapProps> = ({
     // Load BDU area, BDU cells and NVI 2026
     const loaders: [string, (d: FeatureCollection) => void][] = [
       ['bdu_omrade_ustorp.geojson', setBduAreaData],
-      ['bdu_rutor_ustorp.geojson', setBduRutorData],
-      ['nvi_2026_salmonic.geojson', setNvi2026Data],
+      ['bdu_rutor_ustorp.geojson', (d) => { DATA.rutor = d; setBduRutorData(d); }],
+      ['nvi_2026_salmonic.geojson', (d) => { DATA.nvi26 = d; setNvi2026Data(d); }],
     ];
     loaders.forEach(([file, set]) =>
       fetch(`${process.env.PUBLIC_URL}/data/${file}`)
@@ -544,6 +587,7 @@ const Map: React.FC<MapProps> = ({
     fetch(`${process.env.PUBLIC_URL}/data/nvi_biotopes.json`)
       .then(response => response.json())
       .then((data: FeatureCollection) => {
+        DATA.nvi = data;
         setNviBiotopesData(data);
         
         // Load management plans for all objektids
@@ -765,44 +809,29 @@ const Map: React.FC<MapProps> = ({
             )}
           </LayersControl.Overlay>
 
-          <LayersControl.Overlay name="NVI 2026 (Salmonic AB)" checked>
+          <LayersControl.Overlay name="NVI 2026 reclassification (Salmonic AB)" checked>
             {nvi2026Data && (
               <GeoJSON
                 data={nvi2026Data}
                 style={nvi2026Style}
                 pane="labelPane"
-                onEachFeature={(feature, layer) => {
-                  const p = feature.properties || {};
-                  layer.bindPopup(`
-                    <div class="nvi-popup">
-                      <h3>${p.Objektid} – NVI 2026 (omklassning)</h3>
-                      ${Object.entries(p)
-                        .map(([key, value]) => `<div class="property-row">
-                          <span class="property-label">${formatPropertyName(key)}:</span>
-                          <span class="property-value">${value ?? 'N/A'}</span>
-                        </div>`)
-                        .join('')}
-                    </div>`, { maxWidth: 350, maxHeight: 300, autoPan: true });
-                }}
+                onEachFeature={(feature, layer) => { layer.on('click', openPlaceCard); }}
               />
             )}
           </LayersControl.Overlay>
 
-          <LayersControl.Overlay name="BDU-området (12,6 ha)" checked>
+          <LayersControl.Overlay name="BDU area (12.6 ha)" checked>
             {bduAreaData && (
               <GeoJSON
                 data={bduAreaData}
                 style={bduAreaStyle}
                 pane="labelPane"
-                onEachFeature={(feature, layer) => {
-                  const p = feature.properties || {};
-                  layer.bindPopup(`<strong>${p.name}</strong><br>${p.fastighet}, skifte ${p.skifte}<br>${p.bdu}<br>${p.area_ha} ha`);
-                }}
+                onEachFeature={(feature, layer) => { layer.on('click', openPlaceCard); }}
               />
             )}
           </LayersControl.Overlay>
 
-          <LayersControl.Overlay name="BDU-rutor USTORP-01–12" checked>
+          <LayersControl.Overlay name="BDU cells USTORP-01–12" checked>
             {bduRutorData && (
               <GeoJSON
                 data={bduRutorData}
@@ -813,7 +842,7 @@ const Map: React.FC<MapProps> = ({
                   layer.bindTooltip(
                     `<span class="bdu-tag-kind">BDU</span><span class="bdu-tag-nr">${String(p.bdu_id).replace('USTORP-', '')}</span>`,
                     { permanent: true, direction: 'center', className: 'bdu-tag' });
-                  layer.bindPopup(bduCard(p), { className: 'bdu-popup', maxWidth: 260 });
+                  layer.on('click', openPlaceCard);
                   const path = layer as L.Path;
                   layer.on('mouseover', () => { path.setStyle({ fillOpacity: 0.35, weight: 3, color: '#ffd91a' }); path.bringToFront(); });
                   layer.on('mouseout', () => path.setStyle(bduRutorStyle));
@@ -846,7 +875,7 @@ const Map: React.FC<MapProps> = ({
                       iconAnchor: [20, 20]
                     });
                     
-                    const labelMarker = L.marker(centroid, { icon: labelIcon });
+                    const labelMarker = L.marker(centroid, { icon: labelIcon, interactive: false });  // klick går igenom till ytan
                     
                     // Add the label marker to the same layer group as the polygon
                     layer.on('add', (e) => {
