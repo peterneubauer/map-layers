@@ -46,6 +46,30 @@ const nvi2026Style = (feature?: Feature) => ({
   dashArray: '6 4',
 });
 
+// Zoomar in på BDU-området första gången data finns
+const FitToBdu: React.FC<{ data: FeatureCollection | null }> = ({ data }) => {
+  const map = useMap();
+  const done = React.useRef(false);
+  useEffect(() => {
+    if (!data || done.current) return;
+    const b = L.geoJSON(data as any).getBounds();
+    if (!b.isValid()) return;
+    done.current = true;
+    // vänta tills kartans storlek är satt, annars blir zoomen för låg
+    setTimeout(() => { map.invalidateSize(); map.fitBounds(b, { padding: [20, 20], maxZoom: 18 }); }, 0);
+  }, [data, map]);
+  return null;
+};
+
+const bduCard = (p: any) => `
+  <div class="bdu-card-head"><div class="kind">Biodiversity Unit</div><div class="id">${p.bdu_id}</div></div>
+  <div class="bdu-card-body">
+    <div class="bdu-card-row"><span>Area</span><span>${Number(p.area_ha).toFixed(2)} ha</span></div>
+    <div class="bdu-card-row"><span>Managed</span><span>Apr 2026 – Apr 2031</span></div>
+    <div class="bdu-card-row"><span>Property</span><span>Ustorp 1:6, parcel 3</span></div>
+    <div class="bdu-card-row"><span>Project</span><span>Ustorp Biodiversity</span></div>
+  </div>`;
+
 interface MapProps {
   center?: [number, number];
   zoom?: number;
@@ -250,6 +274,33 @@ const polygonLabelStyle = `
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   pointer-events: none;
 }
+/* BDU-rutor: rektangulära etiketter, skilda från de runda NVI-etiketterna */
+.leaflet-tooltip.bdu-tag {
+  background: rgba(20, 32, 22, 0.88);
+  color: #fff;
+  border: none;
+  border-left: 4px solid #ffd91a;
+  border-radius: 6px;
+  padding: 3px 9px 3px 7px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+  font: 600 12px/1.2 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.leaflet-tooltip.bdu-tag::before { display: none; }
+.leaflet-tooltip.bdu-tag .bdu-tag-kind { color: #ffd91a; font-size: 10px; margin-right: 4px; text-transform: uppercase; }
+.leaflet-tooltip.bdu-tag .bdu-tag-nr { font-size: 14px; }
+.bdu-popup .leaflet-popup-content-wrapper { padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 28px rgba(0,0,0,0.35); }
+.bdu-popup .leaflet-popup-content { margin: 0; width: 240px !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.bdu-popup .bdu-card-head { background: #ffd91a; color: #1e2a1e; padding: 10px 14px; }
+.bdu-popup .bdu-card-head .kind { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; }
+.bdu-popup .bdu-card-head .id { font-size: 20px; font-weight: 800; }
+.bdu-popup .bdu-card-body { padding: 10px 14px 12px; color: #2c3e50; font-size: 12.5px; }
+.bdu-popup .bdu-card-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-bottom: 1px solid #eef2ee; }
+.bdu-popup .bdu-card-row:last-child { border-bottom: none; }
+.bdu-popup .bdu-card-row span:first-child { color: #6b7b6b; }
+.bdu-popup .bdu-card-row span:last-child { font-weight: 600; text-align: right; }
+.bdu-popup .leaflet-popup-close-button { color: #1e2a1e !important; }
 `;
 
 // Add CSS styles for fullscreen functionality
@@ -547,9 +598,11 @@ const Map: React.FC<MapProps> = ({
       <MapContainer 
         center={center} 
         zoom={zoom} 
+        zoomSnap={0.25}
         style={{ height: isFullscreen ? '100vh' : '80vh', width: '100%' }}
       >
         <CustomPanes />
+        <FitToBdu data={bduAreaData} />
         {/* Border Layer - always at the bottom */}
         {propertyData && (
           <GeoJSON
@@ -757,10 +810,13 @@ const Map: React.FC<MapProps> = ({
                 pane="labelPane"
                 onEachFeature={(feature, layer) => {
                   const p = feature.properties || {};
-                  layer.bindTooltip(String(p.bdu_id).replace('USTORP-', ''), {
-                    permanent: true, direction: 'center', className: 'polygon-label',
-                  });
-                  layer.bindPopup(`<strong>${p.bdu_id}</strong><br>${p.area_ha} ha`);
+                  layer.bindTooltip(
+                    `<span class="bdu-tag-kind">BDU</span><span class="bdu-tag-nr">${String(p.bdu_id).replace('USTORP-', '')}</span>`,
+                    { permanent: true, direction: 'center', className: 'bdu-tag' });
+                  layer.bindPopup(bduCard(p), { className: 'bdu-popup', maxWidth: 260 });
+                  const path = layer as L.Path;
+                  layer.on('mouseover', () => { path.setStyle({ fillOpacity: 0.35, weight: 3, color: '#ffd91a' }); path.bringToFront(); });
+                  layer.on('mouseout', () => path.setStyle(bduRutorStyle));
                 }}
               />
             )}
@@ -770,6 +826,7 @@ const Map: React.FC<MapProps> = ({
             {nviBiotopesData && (
               <GeoJSON
                 data={nviBiotopesData}
+                interactive={false}  // bara etiketter; får inte fånga klick från lagren under
                 style={() => ({
                   fillOpacity: 0,
                   color: 'transparent',
