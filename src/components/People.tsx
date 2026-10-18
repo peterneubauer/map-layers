@@ -48,16 +48,6 @@ const People: React.FC = () => {
           </div>
           <div className="team-member">
             <div className="member-image">
-              <img src="/map-layers/team/martin_persson.webp" alt="Martin Persson" />
-            </div>
-            <h3>Martin Persson</h3>
-            <p className="role">Initiator</p>
-            <p className="bio">
-              Sustainability specialist and asset manager with a focus on sustainable investments and ESG analysis, business development, and ecosystem-supporting innovation.
-            </p>
-          </div>
-          <div className="team-member">
-            <div className="member-image">
               <img src="/map-layers/team/sindre.webp" alt="Sindre Magnusson" />
             </div>
             <h3>Sindre Magnusson</h3>
