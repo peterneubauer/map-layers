@@ -7,6 +7,7 @@ type Item = {
   facts: string[];
   status?: string;
   image?: { src: string; alt: string; caption: string };
+  field?: { src: string; alt: string; caption: string }[];  // hur datan samlas in
   audio?: { src: string; caption: string };
 };
 
@@ -35,6 +36,10 @@ const items: Item[] = [
   },
   {
     title: 'Sound recordings',
+    field: [
+      { src: `${M}/field_audiomoth_meadow.jpg`, alt: 'AudioMoth recorder on a stake in the meadow', caption: 'Recorder in the meadow' },
+      { src: `${M}/field_audiomoth_forest.jpg`, alt: 'AudioMoth recorder in a weather cover on a tree trunk', caption: 'Recorder in the forest' },
+    ],
     when: 'July 2025 · AudioMoth recorders',
     facts: [
       '17,366 one-minute recordings around six sample points',
@@ -45,6 +50,10 @@ const items: Item[] = [
   },
   {
     title: 'Ground-level panoramas',
+    field: [
+      { src: `${M}/field_panorama_rig.jpg`, alt: 'Camera on a motorised gimbal and tripod in a clearing', caption: 'Camera on a motorised gimbal' },
+      { src: `${M}/diagram_panorama.svg`, alt: 'Diagram: one panorama is 22 by 4 photos', caption: 'How a panorama is built' },
+    ],
     when: 'July 2025 · tripod and 24 MP camera',
     facts: [
       '1,584 images: six sample points, three placements per point, 88 images per panorama',
@@ -54,6 +63,7 @@ const items: Item[] = [
   },
   {
     title: 'Low-altitude drone imagery',
+    field: [{ src: `${M}/diagram_drones.svg`, alt: 'Diagram of the two drone altitudes', caption: 'Low and high flights cover different scales' }],
     when: 'July 2025 · about 5 m above ground',
     facts: [
       '1,022 georeferenced images over one-hectare blocks around five sample points',
@@ -72,6 +82,10 @@ const items: Item[] = [
   },
   {
     title: 'Environmental DNA (eDNA)',
+    field: [
+      { src: `${M}/field_malaise_trap.jpg`, alt: 'Malaise insect trap at the forest edge', caption: 'Malaise trap at the forest edge' },
+      { src: `${M}/diagram_edna.svg`, alt: 'Diagram: from field sample to species list', caption: 'From sample to species list' },
+    ],
     when: 'June–September 2026 · with FinBIO and Artdatabanken',
     facts: [
       '12 weeks of sampling at four sites in the BDU area',
@@ -109,6 +123,19 @@ const BaselineData: React.FC<{ onContact?: () => void }> = ({ onContact }) => (
             <h3>{it.title}</h3>
             <p className="baseline-when">{it.when}</p>
             <ul>{it.facts.map((f) => <li key={f}>{f}</li>)}</ul>
+            {it.field && (
+              <div className="baseline-field">
+                <span className="baseline-field-label">How it is captured</span>
+                <div className={`baseline-field-grid n${it.field.length}`}>
+                  {it.field.map((f) => (
+                    <figure key={f.src}>
+                      <a href={f.src} target="_blank" rel="noopener noreferrer"><img src={f.src} alt={f.alt} loading="lazy" /></a>
+                      <figcaption>{f.caption}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            )}
             {it.audio && (
               <figure className="baseline-audio">
                 <audio controls preload="none" src={it.audio.src} />
