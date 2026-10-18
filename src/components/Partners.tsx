@@ -13,13 +13,6 @@ const Footer: React.FC = () => {
               className="partner-logo"
             />
           </a>
-          <a href="https://www.pivotal.earth/" target="_blank" rel="noopener noreferrer">
-            <img 
-              src={`${process.env.PUBLIC_URL}/logos/pivotal.svg`} 
-              alt="Pivotal Earth" 
-              className="partner-logo"
-            />
-          </a>
           <a href="https://www.almi.se/" target="_blank" rel="noopener noreferrer">
             <img 
               src={`${process.env.PUBLIC_URL}/logos/almi.svg`} 
