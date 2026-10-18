@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" font-family="Arial, sans-serif">
+  <rect width="400" height="200" fill="#1e2a1e"/>
+  <text x="200" y="20" fill="#ffd91a" font-size="13" text-anchor="middle" font-weight="bold">Two drone altitudes, two scales</text>
+  <!-- mark och träd -->
+  <rect x="0" y="172" width="400" height="28" fill="#2f4a2a"/>
+  <g fill="#27ae60"><path d="M40 172 l12 -34 l12 34z"/><path d="M90 172 l10 -26 l10 26z"/><path d="M150 172 l14 -40 l14 40z"/><path d="M230 172 l11 -30 l11 30z"/><path d="M300 172 l13 -36 l13 36z"/><path d="M355 172 l10 -26 l10 26z"/></g>
+  <!-- hög drönare -->
+  <g transform="translate(270,42)" fill="#cfd8cf"><rect x="-10" y="-3" width="20" height="6" rx="2"/><rect x="-18" y="-6" width="8" height="2"/><rect x="10" y="-6" width="8" height="2"/></g>
+  <path d="M270 46 L120 172 L400 172 Z" fill="#ffd91a" fill-opacity="0.12" stroke="#ffd91a" stroke-opacity="0.6" stroke-dasharray="4 3"/>
+  <text x="388" y="70" fill="#fff" font-size="11" text-anchor="end">~120 m: whole property</text>
+  <text x="388" y="84" fill="#cfd8cf" font-size="10" text-anchor="end">4,455 images · 3D structure</text>
+  <!-- låg drönare -->
+  <g transform="translate(70,128)" fill="#cfd8cf"><rect x="-8" y="-2" width="16" height="5" rx="2"/><rect x="-14" y="-5" width="6" height="2"/><rect x="8" y="-5" width="6" height="2"/></g>
+  <path d="M70 132 L45 172 L95 172 Z" fill="#7fd39b" fill-opacity="0.25" stroke="#7fd39b" stroke-dasharray="3 3"/>
+  <text x="12" y="104" fill="#fff" font-size="11">~5 m: 1 ha blocks</text>
+  <text x="12" y="117" fill="#cfd8cf" font-size="10">1,022 images · crowns, shrubs</text>
+</svg>
