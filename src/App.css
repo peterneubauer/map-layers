@@ -425,3 +425,6 @@ body {
 .baseline-audio figcaption { padding: 0.3rem 0 0; }
 .baseline-status { align-self: flex-start; margin-top: auto; padding-top: 1rem; font-size: 0.8rem; font-weight: 600; color: #7fd39b; }
 .baseline-media img[src*="spectrogram"] { object-fit: contain; background: #1e2a1e; }
+.baseline-collab { margin: 3rem auto 0; max-width: 760px; text-align: center; padding: 2rem 1.5rem; border: 1px solid rgba(255,217,26,0.45); border-radius: 14px; background: rgba(255,217,26,0.06); }
+.baseline-collab h3 { margin: 0 0 0.75rem; color: #ffd91a; font-size: 1.4rem; }
+.baseline-collab p { margin: 0 0 1.5rem; color: rgba(255,255,255,0.85); line-height: 1.6; }

@@ -82,7 +82,7 @@ function App() {
       <section className="map-section" id="map-section">
         <Map />
       </section>
-      <BaselineData />
+      <BaselineData onContact={() => setShowContact(true)} />
       <section className="property-info-section" style={{background: '#f8f9f5', color: '#1e2a1e', padding: '3rem 0', borderTop: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0'}}>
         <div style={{maxWidth: '800px', margin: '0 auto', padding: '0 1.5rem'}}>
           <h2 style={{color: '#27ae60', marginBottom: '1.5rem'}}>Property Information</h2>

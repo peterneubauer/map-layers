@@ -87,7 +87,7 @@ const items: Item[] = [
   },
 ];
 
-const BaselineData: React.FC = () => (
+const BaselineData: React.FC<{ onContact?: () => void }> = ({ onContact }) => (
   <section className="baseline-section" id="baseline-data">
     <div className="baseline-content">
       <h2>Baseline data collected in Ustorp</h2>
@@ -118,6 +118,15 @@ const BaselineData: React.FC = () => (
             {it.status && <span className="baseline-status">{it.status}</span>}
           </article>
         ))}
+      </div>
+      <div className="baseline-collab">
+        <h3>Let's collaborate on the science</h3>
+        <p>
+          We are very open to research collaborations on biodiversity monitoring, and to sharing and analysing this data
+          together with researchers, students and other organisations. If you are interested in the data or in working with
+          us in Ustorp, please get in touch.
+        </p>
+        <button className="cta-btn" onClick={onContact}>Contact us</button>
       </div>
     </div>
   </section>
