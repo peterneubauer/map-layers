@@ -35,6 +35,17 @@ const nviBiotopesStyle = (feature?: Feature) => ({
   weight: 2,
 });
 
+// BDU-området (Ustorp 1:6 skifte 3), BDU-rutorna och NVI 2026 (Salmonic AB)
+const bduAreaStyle = { fill: false, color: '#e8b400', weight: 4 };
+const bduRutorStyle = { fillColor: '#ffd91a', fillOpacity: 0.08, color: '#ffffff', weight: 1.5 };
+const nvi2026Style = (feature?: Feature) => ({
+  fillColor: getNvklassColor(feature?.properties?.Nvklass),
+  fillOpacity: 0.6,
+  color: '#333333',
+  weight: 2,
+  dashArray: '6 4',
+});
+
 interface MapProps {
   center?: [number, number];
   zoom?: number;
@@ -397,6 +408,9 @@ const Map: React.FC<MapProps> = ({
 }) => {
   const [propertyData, setPropertyData] = useState<FeatureCollection | null>(null);
   const [nviBiotopesData, setNviBiotopesData] = useState<FeatureCollection | null>(null);
+  const [bduAreaData, setBduAreaData] = useState<FeatureCollection | null>(null);
+  const [bduRutorData, setBduRutorData] = useState<FeatureCollection | null>(null);
+  const [nvi2026Data, setNvi2026Data] = useState<FeatureCollection | null>(null);
   const [managementPlansData, setManagementPlansData] = useState<{[key: string]: any}>({});
   const [areasWithManagementPlans, setAreasWithManagementPlans] = useState<FeatureCollection | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -464,6 +478,17 @@ const Map: React.FC<MapProps> = ({
       .then(response => response.json())
       .then((data: FeatureCollection) => setPropertyData(data))
       .catch((error: Error) => console.error('Error loading property borders:', error));
+    // Load BDU area, BDU cells and NVI 2026
+    const loaders: [string, (d: FeatureCollection) => void][] = [
+      ['bdu_omrade_ustorp.geojson', setBduAreaData],
+      ['bdu_rutor_ustorp.geojson', setBduRutorData],
+      ['nvi_2026_salmonic.geojson', setNvi2026Data],
+    ];
+    loaders.forEach(([file, set]) =>
+      fetch(`${process.env.PUBLIC_URL}/data/${file}`)
+        .then(response => response.json())
+        .then((data: FeatureCollection) => set(data))
+        .catch((error: Error) => console.error(`Error loading ${file}:`, error)));
     // Load NVI biotopes GeoJSON
     fetch(`${process.env.PUBLIC_URL}/data/nvi_biotopes.json`)
       .then(response => response.json())
@@ -682,6 +707,60 @@ const Map: React.FC<MapProps> = ({
                       autoPan: true,
                     });
                   }
+                }}
+              />
+            )}
+          </LayersControl.Overlay>
+
+          <LayersControl.Overlay name="NVI 2026 (Salmonic AB)" checked>
+            {nvi2026Data && (
+              <GeoJSON
+                data={nvi2026Data}
+                style={nvi2026Style}
+                pane="labelPane"
+                onEachFeature={(feature, layer) => {
+                  const p = feature.properties || {};
+                  layer.bindPopup(`
+                    <div class="nvi-popup">
+                      <h3>${p.Objektid} – NVI 2026 (omklassning)</h3>
+                      ${Object.entries(p)
+                        .map(([key, value]) => `<div class="property-row">
+                          <span class="property-label">${formatPropertyName(key)}:</span>
+                          <span class="property-value">${value ?? 'N/A'}</span>
+                        </div>`)
+                        .join('')}
+                    </div>`, { maxWidth: 350, maxHeight: 300, autoPan: true });
+                }}
+              />
+            )}
+          </LayersControl.Overlay>
+
+          <LayersControl.Overlay name="BDU-området (12,6 ha)" checked>
+            {bduAreaData && (
+              <GeoJSON
+                data={bduAreaData}
+                style={bduAreaStyle}
+                pane="labelPane"
+                onEachFeature={(feature, layer) => {
+                  const p = feature.properties || {};
+                  layer.bindPopup(`<strong>${p.name}</strong><br>${p.fastighet}, skifte ${p.skifte}<br>${p.bdu}<br>${p.area_ha} ha`);
+                }}
+              />
+            )}
+          </LayersControl.Overlay>
+
+          <LayersControl.Overlay name="BDU-rutor USTORP-01–12" checked>
+            {bduRutorData && (
+              <GeoJSON
+                data={bduRutorData}
+                style={bduRutorStyle}
+                pane="labelPane"
+                onEachFeature={(feature, layer) => {
+                  const p = feature.properties || {};
+                  layer.bindTooltip(String(p.bdu_id).replace('USTORP-', ''), {
+                    permanent: true, direction: 'center', className: 'polygon-label',
+                  });
+                  layer.bindPopup(`<strong>${p.bdu_id}</strong><br>${p.area_ha} ha`);
                 }}
               />
             )}
